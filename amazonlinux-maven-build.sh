@@ -1,7 +1,3 @@
-mvn archetype:generate -DgroupId=com.example \
-    -DartifactId=myapp \
-    -DarchetypeArtifactId=maven-archetype-quickstart \
-    -DinteractiveMode=false
-
+cd /one
 mvn clean package
-
+ls target/*.war
