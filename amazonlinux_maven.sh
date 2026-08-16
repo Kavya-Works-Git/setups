@@ -1,10 +1,6 @@
-sudo dnf update -y
-sudo dnf install java-17-amazon-corretto -y
+sudo yum update -y
+sudo yum install -y java-17-amazon-corretto
 
-# Set JAVA_HOME and PATH
-echo 'export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64' | sudo tee /etc/profile.d/java.sh
-echo 'export PATH=$JAVA_HOME/bin:$PATH' | sudo tee -a /etc/profile.d/java.sh
-source /etc/profile.d/java.sh
+sudo yum install -y maven
 
-# Verify
-java -version
+# EXECUTE EACH LINE AT A TIME
