@@ -1,0 +1,1 @@
+kops create cluster   --name=flm.k8s.local   --zones=ap-south-2a,ap-south-2b   --control-plane-count=1   --control-plane-size=c7l.large   --control-plane-volume-size=30   --node-count=3   --node-size=t3.small   --node-volume-size=20   --image=ami-0199ac7c9fbf9ed83   --state=s3://kavyaani
