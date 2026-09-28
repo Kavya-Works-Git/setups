@@ -16,5 +16,4 @@ sudo systemctl mask tmp.mount
 # Verify the mount
 df -h /tmp
 
-# Restart Jenkins service
-sudo systemctl restart jenkins
+
