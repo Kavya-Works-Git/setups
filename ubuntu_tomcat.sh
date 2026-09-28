@@ -1,35 +1,62 @@
-# 1. Update packages and install Java
-apt update
-apt install -y openjdk-21-jdk
+#!/bin/bash
+# Install Apache Tomcat on Ubuntu EC2
 
-# 2. Set JAVA_HOME
-echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> ~/.bashrc
-source ~/.bashrc
+# Update system
+sudo apt update -y
+sudo apt upgrade -y
 
-# 3. Download and extract Tomcat
-cd ~
-wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.120/bin/apache-tomcat-9.0.120.tar.gz
-tar -zxvf apache-tomcat-9.0.120.tar.gz
+# Install Java (Tomcat requires JDK)
+sudo apt install -y default-jdk wget
 
-# 4. Create manager user (clean rewrite, avoids XML corruption)
-cat > apache-tomcat-9.0.120/conf/tomcat-users.xml << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<tomcat-users xmlns="http://tomcat.apache.org/xml"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
-              version="1.0">
-<role rolename="manager-gui"/>
-<role rolename="manager-script"/>
-<user username="tomcat" password="admin@123" roles="manager-gui,manager-script"/>
-</tomcat-users>
+# Verify Java installation
+java -version
+
+# Create Tomcat user (ignore error if already exists)
+sudo useradd -m -U -d /opt/tomcat -s /bin/false tomcat || true
+
+# Set Tomcat version
+TOMCAT_VERSION=10.1.26
+
+# Download Tomcat from Apache archive
+wget https://archive.apache.org/dist/tomcat/tomcat-10/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz -P /tmp
+
+# Extract Tomcat to /opt/tomcat
+sudo mkdir -p /opt/tomcat
+sudo tar -xzvf /tmp/apache-tomcat-${TOMCAT_VERSION}.tar.gz -C /opt/tomcat --strip-components=1
+
+# Set permissions
+sudo chown -R tomcat: /opt/tomcat
+sudo chmod +x /opt/tomcat/bin/*.sh
+
+# Create systemd service file
+sudo tee /etc/systemd/system/tomcat.service > /dev/null <<EOF
+[Unit]
+Description=Apache Tomcat Web Application Container
+After=network.target
+
+[Service]
+Type=forking
+User=tomcat
+Group=tomcat
+
+Environment="JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
 EOF
 
-# 5. Allow remote access to Manager and Host Manager apps
-sed -i '/<Valve/,/\/>/d' apache-tomcat-9.0.120/webapps/manager/META-INF/context.xml
-sed -i '/<Valve/,/\/>/d' apache-tomcat-9.0.120/webapps/host-manager/META-INF/context.xml
+# Reload systemd and start Tomcat
+sudo systemctl daemon-reload
+sudo systemctl enable tomcat
+sudo systemctl start tomcat
 
-# 6. Start Tomcat
-sh apache-tomcat-9.0.120/bin/startup.sh
-
-# 7. Confirm it started
-tail -30 apache-tomcat-9.0.120/logs/catalina.out
+# Check Tomcat status
+systemctl status tomcat
