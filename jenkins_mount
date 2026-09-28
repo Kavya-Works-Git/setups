@@ -1,0 +1,20 @@
+# Create the new tmp directory
+sudo mkdir -p /var/tmp_disk
+
+# Set correct permissions (sticky bit, world-writable)
+sudo chmod 1777 /var/tmp_disk
+
+# Bind mount /var/tmp_disk to /tmp
+sudo mount --bind /var/tmp_disk /tmp
+
+# Persist the bind mount in /etc/fstab
+echo '/var/tmp_disk /tmp none bind 0 0' | sudo tee -a /etc/fstab
+
+# Prevent systemd from auto-mounting /tmp with defaults
+sudo systemctl mask tmp.mount
+
+# Verify the mount
+df -h /tmp
+
+# Restart Jenkins service
+sudo systemctl restart jenkins
