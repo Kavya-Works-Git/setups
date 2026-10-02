@@ -1,8 +1,6 @@
 # Update system
 sudo yum update -y
-
-# Install Java (Jenkins requires Java 17)
-sudo yum install java-17-amazon-corretto -y
+sudo yum install java-21-amazon-corretto -y
 
 # Verify Java version
 java -version
